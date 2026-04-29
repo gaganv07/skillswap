@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "SkillSwap Connect",
+    "slug": "skillswap-connect",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/skillswap-logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/skillswap-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/skillswap-logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/skillswap-logo.png"
+    }
+  }
+}

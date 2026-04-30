@@ -57,6 +57,14 @@ app.use('/api/match', requireDatabase, require('./routes/matchRoutes'));
 app.use('/api/swap', requireDatabase, require('./routes/swapRoutes'));
 app.use('/api/review', requireDatabase, require('./routes/reviewRoutes'));
 
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'SkillSwap API is running'
+  });
+});
+
 app.use(notFound);
 app.use(errorHandler);
 

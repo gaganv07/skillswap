@@ -54,7 +54,7 @@ function ExploreUsersPage() {
   const handleSendRequest = async (userId) => {
     try {
       setSendingRequests(prev => new Set(prev).add(userId));
-      await requestAPI.sendRequest(userId);
+      await requestAPI.sendRequest({ receiverId: userId });
 
       // Update the request status in local state
       setUserRequests(prev => ({

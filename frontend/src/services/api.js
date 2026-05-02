@@ -120,14 +120,15 @@ export const matchAPI = {
 // ===================== REQUEST =====================
 export const requestAPI = {
   sendRequest: async (data) => {
-    // 🔴 CRITICAL FIX
-    if (!data || !data.receiverId) {
+    const receiverId = typeof data === "string" ? data : data?.receiverId;
+
+    if (!receiverId) {
       throw new Error("Receiver ID is required");
     }
 
     return unwrap(
       await api.post("/requests", {
-        receiverId: data.receiverId,
+        receiverId,
       })
     );
   },

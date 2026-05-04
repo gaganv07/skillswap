@@ -20,7 +20,6 @@ const requestSchema = new mongoose.Schema(
     // Store sorted user pair to prevent duplicates in both directions
     userPair: {
       type: String,
-      required: true,
       unique: true,
     },
   },
@@ -32,17 +31,19 @@ const requestSchema = new mongoose.Schema(
 // Index on userPair to ensure uniqueness
 requestSchema.index({ userPair: 1 }, { unique: true });
 
-// Prevent self-requests and set userPair
-requestSchema.pre('save', function (next) {
+// Set derived fields before validation so create() does not fail required checks.
+requestSchema.pre('validate', function (next) {
   // Prevent self-requests
-  if (this.sender.equals(this.receiver)) {
+  if (this.sender && this.receiver && this.sender.equals(this.receiver)) {
     const error = new Error('Cannot send request to yourself');
     return next(error);
   }
 
   // Create sorted pair for uniqueness
-  const ids = [this.sender.toString(), this.receiver.toString()].sort();
-  this.userPair = ids.join('_');
+  if (this.sender && this.receiver) {
+    const ids = [this.sender.toString(), this.receiver.toString()].sort();
+    this.userPair = ids.join('_');
+  }
 
   next();
 });

@@ -16,9 +16,9 @@ import RequestsPage from './pages/RequestsPage';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 text-slate-900">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(20,184,166,0.08),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(15,23,42,0.08),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#eef4f7_100%)] text-slate-900">
         <Navbar />
-          <div className="container mx-auto px-4 py-6">
+          <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
@@ -66,6 +66,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RequestsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
                   </ProtectedRoute>
                 }
               />

@@ -115,6 +115,8 @@ export const userAPI = {
         headers: { "Content-Type": "multipart/form-data" },
       })
     ),
+
+  generateBio: async (data) => unwrap(await api.post("/users/generate-bio", data)),
 };
 
 // ===================== MATCH =====================

@@ -52,7 +52,7 @@ function ChatPage() {
       setSending(true);
       const messageData = await chatAPI.sendMessage({
         receiverId: userId,
-        message: newMessage.trim(),
+        content: newMessage.trim(),
       });
       setMessages((prev) => [...prev, messageData.message]);
       setNewMessage('');
@@ -177,7 +177,7 @@ function ChatPage() {
                             : 'border border-slate-200 bg-white text-slate-900'
                         }`}
                       >
-                        <p className="text-sm leading-6">{message.message}</p>
+                        <p className="text-sm leading-6">{message.content || message.message}</p>
                         <p className={`mt-2 text-xs ${isCurrentUser ? 'text-slate-300' : 'text-slate-500'}`}>
                           {formatTime(message.createdAt)}
                         </p>

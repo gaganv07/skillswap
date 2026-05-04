@@ -165,10 +165,19 @@ export const chatAPI = {
   },
 
   sendMessage: async (data) => {
-    if (!data?.receiverId || !data?.message) {
-      throw new Error("ReceiverId and message required");
+    if (!data?.receiverId || !data?.content) {
+      throw new Error("Receiver ID and content are required");
     }
-    return unwrap(await api.post("/chat", data));
+    return unwrap(
+      await api.post("/chat", {
+        receiverId: data.receiverId,
+        content: data.content,
+        type: data.type,
+        fileUrl: data.fileUrl,
+        fileName: data.fileName,
+        fileSize: data.fileSize,
+      })
+    );
   },
 
   getConversations: async () =>

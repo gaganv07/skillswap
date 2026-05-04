@@ -1,10 +1,15 @@
 import axios from 'axios';
 
 // ===================== BASE CONFIG =====================
-const API_URL =
+const normalizeUrl = (url) => url?.replace(/\/+$/, "");
+
+const rawApiUrl =
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost:5000/api";
+  (import.meta.env.DEV ? "http://localhost:5000/api" : "/api");
+
+export const API_URL = normalizeUrl(rawApiUrl);
+export const API_ORIGIN = API_URL.replace(/\/api$/, "");
 
 console.log("API URL:", API_URL);
 

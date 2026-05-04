@@ -6,6 +6,7 @@ import {
 } from '../utils/encryption';
 import MediaUploader from './MediaUploader';
 import AIChatAssistant from './AIChatAssistant';
+import { API_URL } from '../services/api';
 
 /**
  * Enhanced Chat Component
@@ -31,7 +32,7 @@ const ChatComponent = ({ roomId, socket, currentUser, isGroupChat }) => {
       socket.emit('room:join', roomId);
 
       // Mark room as read
-      fetch(`/api/chat/room/${roomId}/read`, {
+      fetch(`${API_URL}/chat/room/${roomId}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

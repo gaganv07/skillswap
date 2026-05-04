@@ -77,21 +77,26 @@ exports.sendRequest = async (req, res) => {
       receiver: receiverId,
     });
 
-    // Create notification for receiver
-    await Notification.create({
-      userId: receiverId,
-      type: 'request',
-      message: `${req.user.name} sent you a connection request`,
-      relatedUserId: req.user.id,
-      relatedRequestId: request._id,
-    });
+    // Create notification for receiver, but do not fail the request flow if
+    // notification persistence has a schema/data issue.
+    try {
+      await Notification.create({
+        userId: receiverId,
+        type: 'request',
+        message: `${req.user.name || 'Someone'} sent you a connection request`,
+        relatedUserId: req.user.id,
+        relatedRequestId: request._id,
+      });
+    } catch (notificationError) {
+      console.error('REQUEST NOTIFICATION CREATE ERROR:', notificationError);
+    }
 
     // Emit real-time notification
     const io = req.app.locals.io;
     if (io) {
       io.emitNotification(receiverId, {
         type: 'REQUEST',
-        message: `${req.user.name} sent you a connection request`,
+        message: `${req.user.name || 'Someone'} sent you a connection request`,
         relatedUserId: req.user.id,
         relatedRequestId: request._id,
       });
@@ -207,21 +212,25 @@ exports.acceptRequest = async (req, res) => {
     request.status = 'accepted';
     await request.save();
 
-    // Create notification for sender
-    await Notification.create({
-      userId: request.sender,
-      type: 'request',
-      message: `${req.user.name} accepted your connection request`,
-      relatedUserId: req.user.id,
-      relatedRequestId: request._id,
-    });
+    // Create notification for sender without blocking acceptance on notification issues.
+    try {
+      await Notification.create({
+        userId: request.sender,
+        type: 'request',
+        message: `${req.user.name || 'Someone'} accepted your connection request`,
+        relatedUserId: req.user.id,
+        relatedRequestId: request._id,
+      });
+    } catch (notificationError) {
+      console.error('ACCEPT NOTIFICATION CREATE ERROR:', notificationError);
+    }
 
     // Emit real-time notification
     const io = req.app.locals.io;
     if (io) {
       io.emitNotification(request.sender.toString(), {
         type: 'ACCEPTED',
-        message: `${req.user.name} accepted your connection request`,
+        message: `${req.user.name || 'Someone'} accepted your connection request`,
         relatedUserId: req.user.id,
         relatedRequestId: request._id,
       });

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import AppToast from '../components/AppToast';
 import { requestAPI, userAPI } from '../services/api';
 
 function ExploreUsersPage() {
@@ -7,6 +8,7 @@ function ExploreUsersPage() {
   const [error, setError] = useState(null);
   const [sendingRequests, setSendingRequests] = useState(new Set());
   const [userRequests, setUserRequests] = useState({});
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     loadUsersAndRequests();
@@ -59,7 +61,7 @@ function ExploreUsersPage() {
   const handleSendRequest = async (user) => {
     try {
       if (!user?._id) {
-        alert('Invalid user');
+        setToast({ type: 'error', message: 'Invalid user. Please refresh and try again.' });
         return;
       }
 
@@ -74,9 +76,9 @@ function ExploreUsersPage() {
         [user._id]: { status: 'pending' },
       }));
 
-      alert('Request sent successfully');
+      setToast({ type: 'success', message: 'Request sent successfully.' });
     } catch (err) {
-      alert(err.message || 'Failed to send request');
+      setToast({ type: 'error', message: err.message || 'Failed to send request.' });
     } finally {
       setSendingRequests((prev) => {
         const next = new Set(prev);
@@ -187,6 +189,8 @@ function ExploreUsersPage() {
 
   return (
     <div className="space-y-6">
+      <AppToast toast={toast} onClose={() => setToast(null)} />
+
       <section className="card card-hover animate-fade-in-scale overflow-hidden">
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-teal-700 px-6 py-8 text-white">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

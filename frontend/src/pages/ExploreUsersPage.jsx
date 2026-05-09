@@ -213,8 +213,21 @@ function ExploreUsersPage() {
       {users.length === 0 ? (
         <section className="card card-hover animate-fade-in-up">
           <div className="px-6 py-14 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl">
-              🔎
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.8}
+                  d="m21 21-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                />
+              </svg>
             </div>
             <h2 className="mt-5 text-xl font-semibold text-slate-900">No users to explore yet</h2>
             <p className="mt-2 text-slate-600">

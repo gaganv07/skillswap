@@ -6,24 +6,39 @@ const User = require('../../src/models/User');
 
 jest.setTimeout(30000);
 let mongoServer;
+let isConnected = false;
 const usingExternalMongo = Boolean(process.env.MONGO_URI);
 
 beforeAll(async () => {
   const mongoUri = process.env.MONGO_URI;
 
-  if (!mongoUri) {
-    mongoServer = await MongoMemoryServer.create();
-  }
+  try {
+    if (!mongoUri) {
+      mongoServer = await MongoMemoryServer.create();
+    }
 
-  await mongoose.connect(mongoUri || mongoServer.getUri());
+    await mongoose.connect(mongoUri || mongoServer.getUri());
+    isConnected = true;
+  } catch (error) {
+    const message = usingExternalMongo
+      ? `Failed to connect to test database using MONGO_URI: ${error.message}`
+      : `Failed to start MongoMemoryServer for auth tests. Set MONGO_URI to a running MongoDB instance if your environment blocks process spawning. Original error: ${error.message}`;
+
+    throw new Error(message);
+  }
 });
 
 afterEach(async () => {
+  if (!isConnected) return;
+
   await User.deleteMany({});
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
+  if (isConnected) {
+    await mongoose.disconnect();
+  }
+
   if (!usingExternalMongo) {
     await mongoServer?.stop();
   }

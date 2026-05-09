@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const path = require('path');
 
 const env = require('./config/env');
 const logger = require('./config/logger');
@@ -32,6 +33,7 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads')));
 app.use(
   morgan(env.isProduction ? 'combined' : 'dev', {
     stream: {

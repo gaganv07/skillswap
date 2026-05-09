@@ -1,16 +1,39 @@
 const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
+const env = require('../config/env');
 
-// Configure Cloudinary storage for multer
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'skillswap_profiles',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
-    transformation: [{ width: 500, height: 500, crop: 'limit' }],
-  },
-});
+const uploadsDir = path.resolve(__dirname, '..', '..', 'uploads');
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const cloudinaryEnabled =
+  Boolean(env.cloudinaryCloudName) &&
+  Boolean(env.cloudinaryApiKey) &&
+  Boolean(env.cloudinaryApiSecret);
+
+const storage = cloudinaryEnabled
+  ? new CloudinaryStorage({
+      cloudinary,
+      params: {
+        folder: 'skillswap_profiles',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
+        transformation: [{ width: 500, height: 500, crop: 'limit' }],
+      },
+    })
+  : multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, uploadsDir);
+      },
+      filename: (req, file, cb) => {
+        const safeExt = path.extname(file.originalname || '').toLowerCase() || '.jpg';
+        cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`);
+      },
+    });
 
 // File filter to allow only images
 const fileFilter = (req, file, cb) => {
@@ -51,6 +74,13 @@ const handleMulterError = (error, req, res, next) => {
     return res.status(400).json({
       success: false,
       message: error.message
+    });
+  }
+
+  if (error.http_code || error.name === 'Error') {
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'Image upload failed'
     });
   }
 

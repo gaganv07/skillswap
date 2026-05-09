@@ -8,7 +8,11 @@ const splitSkills = (value) =>
     .map((skill) => skill.trim())
     .filter(Boolean);
 
-const normalizeProfileImage = (path) => (path ? `${API_ORIGIN}/${path}`.replace(/([^:]\/)\/+/g, '$1') : null);
+const normalizeProfileImage = (path) => {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_ORIGIN}/${String(path).replace(/^\/+/, '')}`.replace(/([^:]\/)\/+/g, '$1');
+};
 
 function ProfilePage() {
   const [searchParams] = useSearchParams();
@@ -16,8 +20,6 @@ function ProfilePage() {
   const [form, setForm] = useState({
     name: '',
     bio: '',
-    skillsToTeach: '',
-    skillsToLearn: '',
     skillsOfferedSimple: '',
     skillsWantedSimple: '',
   });
@@ -26,7 +28,6 @@ function ProfilePage() {
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [generatingBio, setGeneratingBio] = useState(false);
   const [updating, setUpdating] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -43,8 +44,6 @@ function ProfilePage() {
           setForm({
             name: profile.name || '',
             bio: profile.bio || '',
-            skillsToTeach: (profile.skillsToTeach || []).join(', '),
-            skillsToLearn: (profile.skillsToLearn || []).join(', '),
             skillsOfferedSimple: (profile.skillsOfferedSimple || []).join(', '),
             skillsWantedSimple: (profile.skillsWantedSimple || []).join(', '),
           });
@@ -57,8 +56,6 @@ function ProfilePage() {
         setForm({
           name: localUser.name || '',
           bio: localUser.bio || '',
-          skillsToTeach: (localUser.skillsToTeach || []).join(', '),
-          skillsToLearn: (localUser.skillsToLearn || []).join(', '),
           skillsOfferedSimple: (localUser.skillsOfferedSimple || []).join(', '),
           skillsWantedSimple: (localUser.skillsWantedSimple || []).join(', '),
         });
@@ -84,32 +81,6 @@ function ProfilePage() {
     }
   };
 
-  const handleGenerateBio = async () => {
-    if (!form.skillsToTeach.trim() || !form.skillsToLearn.trim()) {
-      setError('Please add skills you can teach and want to learn first.');
-      return;
-    }
-
-    setGeneratingBio(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const data = await userAPI.generateBio({
-        name: form.name || user?.name || 'User',
-        teachSkills: splitSkills(form.skillsToTeach),
-        learnSkills: splitSkills(form.skillsToLearn),
-      });
-
-      setForm((prev) => ({ ...prev, bio: data.bio }));
-      setMessage('AI bio generated successfully.');
-    } catch (err) {
-      setError(err.message || 'Failed to generate bio.');
-    } finally {
-      setGeneratingBio(false);
-    }
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage(null);
@@ -120,8 +91,6 @@ function ProfilePage() {
       const formData = new FormData();
       formData.append('name', form.name);
       formData.append('bio', form.bio);
-      formData.append('teachSkills', JSON.stringify(splitSkills(form.skillsToTeach)));
-      formData.append('learnSkills', JSON.stringify(splitSkills(form.skillsToLearn)));
       formData.append('skillsOfferedSimple', JSON.stringify(splitSkills(form.skillsOfferedSimple)));
       formData.append('skillsWantedSimple', JSON.stringify(splitSkills(form.skillsWantedSimple)));
 
@@ -156,9 +125,6 @@ function ProfilePage() {
       </section>
     );
   }
-
-  const teachSkills = user.skillsToTeach || [];
-  const learnSkills = user.skillsToLearn || [];
 
   return (
     <div className="space-y-6">
@@ -248,36 +214,6 @@ function ProfilePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Bio</p>
               <p className="mt-3 text-sm leading-7 text-slate-700">{user.bio || 'No bio added yet.'}</p>
             </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Skills I Teach</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {teachSkills.length > 0 ? (
-                  teachSkills.map((skill) => (
-                    <span key={skill} className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
-                      {skill}
-                    </span>
-                  ))
-                ) : (
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">No teaching skills listed</span>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Skills I Want To Learn</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {learnSkills.length > 0 ? (
-                  learnSkills.map((skill) => (
-                    <span key={skill} className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-800">
-                      {skill}
-                    </span>
-                  ))
-                ) : (
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">No learning goals listed</span>
-                )}
-              </div>
-            </div>
           </div>
         </section>
 
@@ -291,16 +227,6 @@ function ProfilePage() {
                 {isReadOnly ? 'Public profile information' : 'Keep your profile polished'}
               </h2>
             </div>
-            {!isReadOnly && (
-              <button
-                type="button"
-                onClick={handleGenerateBio}
-                disabled={generatingBio || !form.skillsToTeach.trim() || !form.skillsToLearn.trim()}
-                className="rounded-2xl border border-teal-200 bg-teal-50 px-4 py-2.5 text-sm font-medium text-teal-800 transition-colors hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {generatingBio ? 'Generating...' : 'Generate Bio'}
-              </button>
-            )}
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 grid gap-5">
@@ -325,30 +251,6 @@ function ProfilePage() {
                 rows="5"
                 className="form-input min-h-[140px] resize-y disabled:cursor-not-allowed disabled:bg-slate-100"
                 placeholder="Share what makes you a great skill partner."
-              />
-            </label>
-
-            <label className="block">
-              <span className="form-label">Skills I Can Teach</span>
-              <input
-                name="skillsToTeach"
-                value={form.skillsToTeach}
-                onChange={handleChange}
-                disabled={isReadOnly}
-                placeholder="JavaScript, Guitar, Public speaking"
-                className="form-input disabled:cursor-not-allowed disabled:bg-slate-100"
-              />
-            </label>
-
-            <label className="block">
-              <span className="form-label">Skills I Want To Learn</span>
-              <input
-                name="skillsToLearn"
-                value={form.skillsToLearn}
-                onChange={handleChange}
-                disabled={isReadOnly}
-                placeholder="Python, Piano, Photography"
-                className="form-input disabled:cursor-not-allowed disabled:bg-slate-100"
               />
             </label>
 

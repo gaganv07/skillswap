@@ -6,6 +6,24 @@ const { getPagination, buildPaginationMeta } = require('../utils/pagination');
 const OpenAI = require('openai');
 const { generateKeyPair } = require('../utils/encryption');
 
+const getStoredImagePath = (file) => {
+  if (!file) return null;
+
+  if (file.path && /^https?:\/\//i.test(file.path)) {
+    return file.path;
+  }
+
+  if (file.filename) {
+    return `uploads/${file.filename}`;
+  }
+
+  if (file.path) {
+    return String(file.path).replace(/\\/g, '/').replace(/^.*\/uploads\//, 'uploads/');
+  }
+
+  return null;
+};
+
 const normalizeSkills = (skills = []) =>
   skills
     .map((entry) => {
@@ -131,10 +149,11 @@ exports.updateProfile = async (req, res) => {
     }
 
     // SAFE IMAGE HANDLING - prevent crashes if req.file is undefined
-    if (req.file && req.file.path) {
-      console.log('Image uploaded successfully:', req.file.path);
-      updateData.profileImage = req.file.path;
-      updateData.profilePic = req.file.path;
+    const storedImagePath = getStoredImagePath(req.file);
+    if (storedImagePath) {
+      console.log('Image uploaded successfully:', storedImagePath);
+      updateData.profileImage = storedImagePath;
+      updateData.profilePic = storedImagePath;
     } else if (req.file) {
       console.warn('File uploaded but no path available:', req.file);
     } else {
@@ -235,7 +254,9 @@ exports.uploadProfilePic = async (req, res) => {
       });
     }
 
-    if (!req.file.path) {
+    const storedImagePath = getStoredImagePath(req.file);
+
+    if (!storedImagePath) {
       console.error('File uploaded but no path available:', req.file);
       return res.status(500).json({
         success: false,
@@ -252,8 +273,8 @@ exports.uploadProfilePic = async (req, res) => {
       });
     }
 
-    user.profileImage = req.file.path;
-    user.profilePic = req.file.path;
+    user.profileImage = storedImagePath;
+    user.profilePic = storedImagePath;
     await user.save();
 
     return res.json({
@@ -417,4 +438,3 @@ exports.generateBio = asyncHandler(async (req, res) => {
     throw new AppError('Failed to generate bio. Please try again later.', 500);
   }
 });
-

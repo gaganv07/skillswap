@@ -15,14 +15,16 @@ console.log("API URL:", API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 30000,
 });
 
 // ===================== HELPERS =====================
 const getToken = () => localStorage.getItem("token");
 
 const getErrorMessage = (error) =>
-  error.response?.data?.message || error.message || "Something went wrong";
+  error.code === "ECONNABORTED"
+    ? "The server took too long to respond. Please try again in a few seconds."
+    : error.response?.data?.message || error.message || "Something went wrong";
 
 const unwrap = (response) => {
   if (!response?.data) throw new Error("Invalid response");
